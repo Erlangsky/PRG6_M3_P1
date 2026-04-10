@@ -13,53 +13,57 @@ import KartuProfil from "./components/KartuProfil";
 
 export default function App() {
   // A. INISIALISASI STATE
+  // 1. MENGGANTI this.state menjadi useState
   const [kodeKelas, setKodeKelas] = useState('');
   const [isHadir, setIsHadir] = useState(false);
   const [waktuAbsen, setWaktuAbsen] = useState('');
   const [jamRealtime, setJamRealtime] = useState('Memuat jam...');
 
 
-  // Data statis untuk dikirim sebagai Props ke Functional Component
+  // Data statis tidak butuh state
   const studentData = {
     nama: 'Budi Susanto',
     nim: '030812345',
     prodi: 'TRPL - Politeknik Astra',
   };
 
-  // B. FASE MOUNTING (Komponen Lahir)
+  // 2. Menggabungkan MOUNTING & UNMOUNTING
   useEffect(() => {
     console.log('[MOUNTING] Aplikasi Presensi Dibuka.');
 
-    // Mulai jam digital tiap 1 detik
+    // Timer berjalan setiap detik
     const intervalJam = setInterval(() => {
       const waktu = new Date().toLocaleTimeString('id-ID', {
         hour: '2-digit', minute: '2-digit', second: '2-digit'
       });
-      setJamRealtime(waktu); // Update state jam
+      setJamRealtime(waktu); // Menggantikaan this.setState({ jamRealtime: waktu })
     }, 1000);
 
-    // Membersihkan interval saat komponen di-unmount
+    // CLEANUP FUNCTION (berfungsi layaknya componentWillUnmount)
     return () => clearInterval(intervalJam);
   }, []);
 
-  // C. FASE UPDATING (Komponen Berubah)
+  // 3. MENGGANTI componentDidUpdate
   useEffect(() => {
-    console.log('[UPDATING] State berubah:', { kodeKelas, isHadir, waktuAbsen });
+    // Hanya bereaksi jika state isHadir berubah menjadi true
+    if (isHadir) {
+      console.log(`[UPDATING] Sukses presensi pada pukul: ${waktuAbsen}`);
+    }
   }, [isHadir, waktuAbsen]);
 
-  // E. LOGIKA EVENT HANDLER
+  // 4. EVENT HANDLER
   const handleAbsen = () => {
     if (kodeKelas.trim() === '') {
       alert('Masukkan kode kelas (Simulasi QR) terlebih dahulu!');
       return;
     }
 
-    // Ubah state menjadi hadir dan rekam jam saat itu
+    // Ubah state secara langsung dengan fungsi setter-nya
     setIsHadir(true);
     setWaktuAbsen(jamRealtime);
   };
 
-  // F. FUNGSI RENDER WAJIB
+  // 5. LANGSUNG RETURN UO (Hapus tulias render () {})
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.container}>
@@ -69,7 +73,7 @@ export default function App() {
           <Text style={styles.clockText}>{jamRealtime}</Text>
         </View>
 
-        {/* MEMANGGIL FUNCTIONAL COMPONENT DAN MENGIRIM PROPS */}
+        {/* Panggil variabel langsung tanpa this.studentData */}
         <KartuProfil student={studentData} />
 
         {/* SEKSI PRESENSI (CONDITIONAL RENDERING) */}
@@ -93,11 +97,12 @@ export default function App() {
                 style={styles.input}
                 placeholder="Contoh: TRPL-03"
                 value={kodeKelas}
-                // Hati-hati: Di class, kita gunakan this.setState
+                // Jauh lebih ringkas dari sebelumnya
                 onChangeText={setKodeKelas}
                 autoCapitalize="characters"
               />
 
+              {/* Panggil fungsi handle tanpa this */}
               <TouchableOpacity style={styles.buttonSubmit} onPress={handleAbsen}>
                 <Text style={styles.buttonText}>Konfirmasi Kehadiran</Text>
               </TouchableOpacity>
